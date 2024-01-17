@@ -23,20 +23,21 @@
 
 MAIN	= main.yaml
 SRCS	= $(wildcard *.yaml)
-PROJTAG	= 0
 
 # the make rules below require yaml files to have .yaml suffixes.
 ifneq (x$(suffix $(MAIN)),x.yaml)
   $(error "The suffix of $(MAIN) yaml file must be .yaml")
 endif
 
+PROJTAG	= 0
 PROJDIR	= proj.$(PROJTAG)
-PROJTAGS= $(subst proj.,,$(wildcard proj.*/))
-_MAIN	= $(PROJDIR).yaml
-CPP	= gcc -x c -undef -nostdinc $(DEFS) 
-_YAMLS	= $(addprefix $(PROJDIR)/,$(filter-out $(wildcard proj.*.yaml),$(SRCS)))
 DEFS    = -I$(PROJDIR) -I. -D_PROJTAG_$(PROJTAG)=1 -D_USER_$(USER)=1
+
+_MAIN	= $(PROJDIR).yaml
+_YAMLS	= $(addprefix $(PROJDIR)/,$(filter-out $(wildcard proj.*.yaml),$(SRCS)))
+
 DEHASH	= ./dehash/dehash
+CPP	= gcc -x c -E -P -undef -nostdinc $(DEFS) 
 
 all:	 dehash $(_YAMLS) $(_MAIN)
 
@@ -44,26 +45,30 @@ $(_MAIN) $(_YAMLS): Makefile
 
 $(_MAIN): $(PROJDIR)/$(MAIN)
 	@echo "Generating $@"
-	$(CPP) -E -P -MD -MP -MT $@ -MF $<.d $< > $@
+	$(CPP) -MD -MP -MT $@ -MF $<.d $< > $@
 
-.PRECIOUS: $(PROJDIR) dehash
 $(PROJDIR):
 	-mkdir -p $@
-
--include $(wildcard $(PROJDIR)/*.d)
-
-realclean: 
-	rm -rf .esphome dehash ./.dehash
-
-clean:
-	rm -rf $(PROJDIR) $(_MAIN)
-
-# .PRECIOUS: $(PROJDIR) $(_YAMLS) $(_MAIN)
-.PHONY: clean realclean all 
 
 $(PROJDIR)/%.yaml: %.yaml
 	$(DEHASH) --cpp --outdir $(PROJDIR) $<
 
+-include $(wildcard $(PROJDIR)/*.d)
+
+clean:
+	rm -rf $(PROJDIR) $(_MAIN)
+
+realclean: 
+	rm -rf .esphome dehash ./.dehash
+
+.PHONY:    clean realclean all update
+.PRECIOUS: $(PROJDIR) dehash
+
 dehash:
 	git clone git@github.com:maartenwrs/dehash
+
+# update this Makefile from github. Danger if you modified it!
+update:
+	mv Makefile Makefile.old
+	curl https://raw.githubusercontent.com/maartenwrs/espmake/main/Makefile >Makefile
 
