@@ -25,11 +25,6 @@ MAIN	= main.yaml
 SRCS	= $(wildcard *.yaml)
 PROJTAG	= 0
 
-# check that an esphome virtual environment is setup
-ifeq ($(VIRTUAL_ENV),)
-  $(waring Did you forgot to source esphome.git/venv/bin/activate?)
-endif
-
 # the make rules below require yaml files to have .yaml suffixes.
 ifneq (x$(suffix $(MAIN)),x.yaml)
   $(error "The suffix of $(MAIN) yaml file must be .yaml")
