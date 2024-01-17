@@ -41,9 +41,9 @@ _MAIN	= $(PROJDIR).yaml
 CPP	= gcc -x c -undef -nostdinc $(DEFS) 
 _YAMLS	= $(addprefix $(PROJDIR)/,$(filter-out $(wildcard proj.*.yaml),$(SRCS)))
 DEFS    = -I$(PROJDIR) -I. -D_PROJTAG_$(PROJTAG)=1 -D_USER_$(USER)=1
-DEHASH	= ./sed-octo-proctor/dehash
+DEHASH	= ./dehash/dehash
 
-all:	 sed-octo-proctor $(_YAMLS) $(_MAIN)
+all:	 dehash $(_YAMLS) $(_MAIN)
 
 $(_MAIN) $(_YAMLS): Makefile
 
@@ -57,7 +57,7 @@ $(PROJDIR):
 -include $(wildcard $(PROJDIR)/*.d)
 
 realclean: 
-	rm -rf .esphome ./sed-octo-proctor
+	rm -rf .esphome dehash ./.dehash
 
 clean:
 	rm -rf $(PROJDIR) $(_MAIN)
@@ -68,5 +68,5 @@ clean:
 $(PROJDIR)/%.yaml: %.yaml
 	$(DEHASH) --cpp --outdir $(PROJDIR) $<
 
-sed-octo-proctor:
-	git clone git@github.com:maartenwrs/sed-octo-proctor
+dehash:
+	git clone git@github.com:maartenwrs/dehash
