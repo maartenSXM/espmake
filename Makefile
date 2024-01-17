@@ -48,9 +48,10 @@ all:	 dehash $(_YAMLS) $(_MAIN)
 $(_MAIN) $(_YAMLS): Makefile
 
 $(_MAIN): $(PROJDIR)/$(MAIN)
+	@echo "Generating $@"
 	$(CPP) -E -P -MD -MP -MT $@ -MF $<.d $< > $@
 
-.PRECIOUS: $(PROJDIR) 
+.PRECIOUS: $(PROJDIR) dehash
 $(PROJDIR):
 	-mkdir -p $@
 
@@ -63,10 +64,11 @@ clean:
 	rm -rf $(PROJDIR) $(_MAIN)
 
 # .PRECIOUS: $(PROJDIR) $(_YAMLS) $(_MAIN)
-.PHONY: realclean all 
+.PHONY: clean realclean all 
 
 $(PROJDIR)/%.yaml: %.yaml
 	$(DEHASH) --cpp --outdir $(PROJDIR) $<
 
 dehash:
 	git clone git@github.com:maartenwrs/dehash
+
