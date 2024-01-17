@@ -1,0 +1,29 @@
+To install esphome, do this:
+
+git clone https://github.com/esphome/esphome.git
+cd esphome.git
+git checkout dev # optional - only if esphome dev branch preferred
+./script/setup
+
+To activate the python virtual environment in a terminal shell,
+do this:
+
+source venv/bin/activate
+
+Now after cd-ing into this directory, it is possible to generate
+yaml for the default project tag '0' using make, which produces
+esphome yaml file proj.0.yaml.
+
+To build for another project tag, pass PROJTAG=1 to your make command.
+
+Once the yaml files are generated, it is also possible to issue esphome
+commands directly on the generated yaml files, such as:
+
+esphome compile proj.0.yaml
+esphome upload  proj.0.yaml
+esphome logs    proj.0.yaml
+
+See 'esphome -h' for more details on esphome commands
+
+Intermediate C-preprocessed files are stored in ./proj.<PROJTAG>
+

@@ -1,0 +1,4 @@
+This espmake test uses https://github.com/landonr/lilygo-tdisplays3-esphome
+against the same example yaml in .. which is used for the cpp example to show
+how to use espmake. To run the test, type 'make test'. Thank you for
+the example Landon!

@@ -1,0 +1,3 @@
+#include "config.h"
+#include "pins.h"
+#include "lilygo-tdisplays3-esphome.yaml"
