@@ -39,12 +39,14 @@ _YAMLS	= $(addprefix $(PROJDIR)/,$(filter-out $(wildcard proj.*.yaml),$(SRCS)))
 DEHASH	= ./dehash/dehash
 CPP	= gcc -x c -E -P -undef -nostdinc $(DEFS) 
 
-all:	 dehash $(_YAMLS) $(_MAIN)
+all:	dehash $(_YAMLS) $(_MAIN)
+	@echo "espmake: $(_MAIN) now ready for esphome commands such as:"
+	@echo "\tesphome config $(_MAIN)"
 
 $(_MAIN) $(_YAMLS): Makefile
 
 $(_MAIN): $(PROJDIR)/$(MAIN)
-	@echo "Generating $@"
+	@echo "Generating $@ from dehashed files in $(PROJDIR)/"
 	$(CPP) -MD -MP -MT $@ -MF $<.d $< > $@
 
 $(PROJDIR):
