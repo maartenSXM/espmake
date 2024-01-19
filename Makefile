@@ -71,7 +71,11 @@ dehash:
 
 # update dehash and this Makefile from github
 update:
-	cd dehash; git pull
-	curl https://raw.githubusercontent.com/maartenwrs/espmake/main/Makefile >Makefile.new
-	diff Makefile Makefile.new
+	-@if [ -d "example/dehash" ]; then 	\
+		echo updating example/dehash; 	\
+		cd example/dehash; 		\
+		git pull;			\
+	fi
+	-@curl https://raw.githubusercontent.com/maartenwrs/espmake/main/Makefile >Makefile.new 2> /dev/null
+	-diff Makefile Makefile.new
 
