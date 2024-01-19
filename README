@@ -9,9 +9,11 @@ into your esphome project directory and then run the make command.
 Note that this assumes that the destination project doesn't have a
 Makefile already. If it does, this Makefile could be renamed and included
 from the project Makefile however that is left as an exercise for the reader.
-The espmake Makefile, by defaults, run's main.yaml through the
+
+The espmake Makefile, by default, feeds main.yaml through the
 c-preprocessor to generate file proj.0.yaml. To choose another yaml
-file, pass MAIN=myMain.yaml as an argument to the make command.
+file, pass MAIN=myMain.yaml as an argument to the make command - or edit
+the Makefile.
 
 Multiple project variants can be generated from the same main.yaml by
 using the project "tag" feature of the Makefile.  To build for another
@@ -19,6 +21,9 @@ project tag, for example, specify PROJTAG=1 to your make command. Project
 tags are text tags so PROJTAG=foo is also a valid project tag.
 Project tags can vary the yaml sources using C-preprocessor directives
 such as #if _PROJTAG_1 ... #endif.
+
+Intermediate C-preprocessed files are stored in ./proj.<PROJTAG>
+They can be cleaned using 'make clean'.
 
 There are some additional comments describing Makefile features in the
 Makefile.
@@ -30,17 +35,16 @@ can be issued upon it, such as:
  esphome upload  proj.0.yaml
  esphome logs    proj.0.yaml
 
-See 'esphome -h' for more details on esphome commands
+See 'esphome -h' for more details on esphome commands.  There are some
+aliases in ./Bashrc which may be helpful.
 
-Intermediate C-preprocessed files are stored in ./proj.<PROJTAG>
-They can be cleaned using 'make clean'.
-
-espmake uses github project dehash (https://github.com/maartenwrs/dehash)
-to remove hash-style comments from yaml sources before running them
-through the c-preprocessor.
+espmake uses a small github project called dehash
+(https://github.com/maartenwrs/dehash) to remove hash-style comments
+before running files through the c-preprocessor.
 
 Thank you to Landon Rohatensky for the exemplary esphome yaml file
 https://github.com/landonr/lilygo-tdisplays3-esphome used to demonstrate
 espmake configuration, build and also as used in the test subdirectory.
 
 Disclaimer: the author has not attempted to use espmake with Visual Studio.
+

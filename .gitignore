@@ -2,3 +2,4 @@ proj.*
 .esphome
 test/.esphome
 dehash/
+Makefile.new

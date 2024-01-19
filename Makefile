@@ -67,8 +67,9 @@ realclean:
 dehash:
 	git clone git@github.com:maartenwrs/dehash
 
-# update this Makefile from github. Danger if you modified it!
+# update dehash and this Makefile from github
 update:
-	mv Makefile Makefile.old
-	curl https://raw.githubusercontent.com/maartenwrs/espmake/main/Makefile >Makefile
+	cd dehash; git pull
+	curl https://raw.githubusercontent.com/maartenwrs/espmake/main/Makefile >Makefile.new
+	diff Makefile Makefile.new
 
