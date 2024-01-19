@@ -43,7 +43,7 @@ all:	dehash $(_YAMLS) $(_MAIN)
 	@echo "espmake: $(_MAIN) now ready for esphome commands such as:"
 	@echo "\tesphome config $(_MAIN)"
 
-$(_MAIN) $(_YAMLS): Makefile
+$(_MAIN) $(_YAMLS): dehash Makefile
 
 $(_MAIN): $(PROJDIR)/$(MAIN)
 	@echo "Generating $@ from dehashed files in $(PROJDIR)/"

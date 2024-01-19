@@ -3,20 +3,20 @@ ifeq ($(VIRTUAL_ENV),)
   $(warning Did you forgot to source esphome.git/venv/bin/activate?)
 endif
 
-include ../Makefile
+# include ../Makefile
 
 YAML1   := proj.0.yaml
 YAML2   := lilygo-tdisplays3-esphome.yaml
 ESPMAKE := /tmp/espmake.$(shell echo $$PPID)
 ESPHOME := /tmp/esphome.$(shell echo $$PPID)
 
-test:
-	@printf "Creating $(ESPMAKE) config using espmake from $(YAML1) ..."
-	@cd ..; make --no-print-directory clean > /dev/null; 		\
-	make --no-print-directory $(YAML1) >/dev/null 2> /dev/null;	\
-	esphome config $(YAML1) >$(ESPMAKE) 2> /dev/null
+test all:
+	@printf "Creating $(ESPMAKE) using espmake from ../example/$(YAML1) ..."
+	@make -C ../example clean > /dev/null; 
+	@make -C ../example all >/dev/null 2> /dev/null;
+	@cd ../example; esphome config $(YAML1) >$(ESPMAKE) 2> /dev/null
 	@printf "done.\n"
-	@printf "Creating $(ESPHOME) config using esphome from $(YAML2) ..."
+	@printf "Creating $(ESPHOME) using esphome from $(YAML2) ..."
 	@esphome config $(YAML2) >$(ESPHOME) 2> /dev/null
 	@printf "done.\n"
 	@printf "Comparing espmake and esphome configs..."
