@@ -3,8 +3,6 @@ ifeq ($(VIRTUAL_ENV),)
   $(warning Did you forgot to source esphome.git/venv/bin/activate?)
 endif
 
-# include ../Makefile
-
 YAML1   := proj.0.yaml
 YAML2   := lilygo-tdisplays3-esphome.yaml
 ESPMAKE := /tmp/espmake.$(shell echo $$PPID)

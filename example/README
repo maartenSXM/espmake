@@ -1,0 +1,15 @@
+Files:
+    main.yaml
+	The project's main yaml file.  It #includes other project files.
+
+    config.h
+	Where project features are set using #defines.
+
+    pins.h
+	Where esphome pin numbers are set for C/C++ and yaml use.
+
+    secrets.yaml
+	Included by lilygo-tdisplays3-esphome.yaml using !secret.
+
+    lilygo-tdisplays3-esphome.yaml
+	The examplary project, espmake-fied.  The original is in ../test.
