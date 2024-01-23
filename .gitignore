@@ -1,5 +1,5 @@
 myProj_*
-.esphome
+.esphome/
 test/.esphome
 dehash/
 Makefile.new
