@@ -1,4 +1,4 @@
-proj.*
+myProj_*
 .esphome
 test/.esphome
 dehash/
