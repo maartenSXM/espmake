@@ -62,7 +62,7 @@ esphome yaml sources can vary using #if  directives such as:
 ```
 
 ## Generated files
-espmake generated file project file <PREFIX><PROJTAG>.yaml
+espmake generates esphome project file <PREFIX><PROJTAG>.yaml
 Intermediate C-preprocessed files used to generate <PREFIX><PROJTAG>.yaml
 are stored in directory <PREFIX><PROJTAG>/
 
