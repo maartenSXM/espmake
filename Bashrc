@@ -2,15 +2,15 @@ alias get_esphome='source ~/git/esphome.git/venv/bin/activate; cd ~/git/growOS/e
 alias git_diff='git diff HEAD@{1}'
 alias search="find . -type f -print0 | xargs -0 grep -i"
 alias esp=esphome
-alias compile="esphome compile proj.0.yaml"
+alias compile="esphome compile myProj_0.yaml"
 alias make1="make PROJTAG=1"
-alias compile1="esphome compile proj.1.yaml"
+alias compile1="esphome compile myProj_1.yaml"
 
-alias jtag="esphome upload --device /dev/ttyUSB1 proj.0.yaml"
-alias jtag1="esphome upload --device /dev/ttyUSB2 proj.1.yaml"
-alias logs="esphome logs --device /dev/ttyUSB1 proj.0.yaml"
-alias logs1="esphome logs --device /dev/ttyUSB2 proj.1.yaml"
-alias upload="esphome upload --device 192.168.8.134 proj.0.yaml"
-alias upload1="esphome upload --device 192.168.8.135 proj.1.yaml"
+alias jtag="esphome upload --device /dev/ttyUSB1 myProj_0.yaml"
+alias jtag1="esphome upload --device /dev/ttyUSB2 myProj_1.yaml"
+alias logs="esphome logs --device /dev/ttyUSB1 myProj_0.yaml"
+alias logs1="esphome logs --device /dev/ttyUSB2 myProj_1.yaml"
+alias upload="esphome upload --device 192.168.8.134 myProj_0.yaml"
+alias upload1="esphome upload --device 192.168.8.135 myProj_1.yaml"
 
 
