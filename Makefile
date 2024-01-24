@@ -35,18 +35,18 @@ CPPDEFS = -D_PROJTAG_$(PROJTAG)=1 -D_USER_$(USER)=1
 _MAIN	= $(PROJDIR).yaml
 _YAMLS	= $(addprefix $(PROJDIR)/,$(filter-out $(wildcard $(PREFIX)*.yaml),$(SRCS)))
 
-DEHASH	= $(OUTDIR)/dehash/dehash
+DEHASH	= $(OUTDIR)/dehash/dehash.sh --cpp
 CPP	= gcc -x c -E -P -undef -nostdinc $(CPPINCS) $(CPPDEFS) 
 
-all:	$(OUTDIR)/dehash $(_YAMLS) $(_MAIN)
-	-@if [ "$(OUTDIR)" != "." -a -f "secrets.yaml" ]; then 			\
-	    if [ -L "$(OUTDIR)/secrets.yaml" ]; then 				\
-	    	rm -f $(OUTDIR)/secrets.yaml;					\
-		echo "re-linking $(OUTDIR)/secrets.yaml";			\
-	    else								\
-		echo "linking $(OUTDIR)/secrets.yaml";				\
-	    fi;									\
-	    ln -s $(PREFIX)$(PROJTAG)/secrets.yaml $(OUTDIR)/secrets.yaml;	\
+all:	$(OUTDIR)/dehash $(PROJDIR) $(_YAMLS) $(_MAIN)
+	-@if [ "$(OUTDIR)" != "." -a -f "secrets.yaml" ]; then 		   \
+	    if [ -L "$(OUTDIR)/secrets.yaml" ]; then 			   \
+	    	rm -f $(OUTDIR)/secrets.yaml;				   \
+		echo "re-linking $(OUTDIR)/secrets.yaml";		   \
+	    else							   \
+		echo "linking $(OUTDIR)/secrets.yaml";			   \
+	    fi;								   \
+	    ln -s $(PREFIX)$(PROJTAG)/secrets.yaml $(OUTDIR)/secrets.yaml; \
 	fi
 	@echo "$(_MAIN) is up to date and ready for commands such as:"
 	@echo "esphome config  $(_MAIN)"
@@ -66,7 +66,7 @@ $(PROJDIR):
 	-mkdir -p $@
 
 $(PROJDIR)/%.yaml: %.yaml
-	$(DEHASH) --cpp --outdir $(PROJDIR) $<
+	$(DEHASH) $< > $@
 
 -include $(wildcard $(PROJDIR)/*.d)
 
