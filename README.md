@@ -90,3 +90,14 @@ espmake configuration, build and also as used in the test subdirectory.
 
 Tthe author has not attempted to use espmake with Visual Studio.
 
+# MacOS Note
+Note: on MacOS, you need GNU sed to run dehash.sh, which espmake invokes . To install GNU sed, please do this:
+```
+brew install gsed
+```
+and then add this line to your .bashrc:
+```
+export PATH="/opt/homebrew/opt/gnu-sed/libexec/gnubin:$PATH"
+```
+and then 'source .bashrc' or logout and log back in.
+

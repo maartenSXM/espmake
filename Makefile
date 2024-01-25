@@ -87,7 +87,7 @@ realclean: clean
 
 $(OUTDIR)/dehash:
 	-@mkdir -p $(OUTDIR)
-	cd $(OUTDIR); git clone git@github.com:maartenwrs/dehash
+	cd $(OUTDIR); git clone https://github.com/maartenwrs/dehash
 
 # pull dehash repo and this Makefile from github
 update:
