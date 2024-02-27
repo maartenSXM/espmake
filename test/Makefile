@@ -26,3 +26,5 @@ test all:
 	    printf "diff $(ESPMAKE) $(ESPHOME)\n";		\
 	    exit 1; 						\
     	fi
+
+.PHONY: test

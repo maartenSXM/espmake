@@ -1,14 +1,23 @@
-# This Makefile is based on https://github.com/maartenwrs/espmake
+# This Makefile is from https://github.com/maartenwrs/espmake
+# It is esphome project independent since all esphome project config
+# can be conditionally included from yaml, when this Makefile is used
+# to build an esphome project. Instead of editting this Makefile, 
+# consider adding a main.yaml to your project that #includes yaml
+# files for your project as needed.  That will future-proof your Makefile
+# if you ever need to update it using "make update" from the espmake repo.
 # 
-# A convenience c-preprocessor define _PROJTAG_$(PROJTAG) is defined so that
-# project-specific yaml can be written inside, for example, #if _PROJTAG_foo
-# / #endif blocks, when PROJTAG is set to "foo".
+# A convenience c-preprocessor define _PROJTAG_$(PROJTAG) is #define-ed as
+# true so that project-specific yaml can be written inside, for example,
+# #if _PROJTAG_foo ... #endif blocks, when PROJTAG is set to "foo".
+# Also, _PROJTAG is #define-ed to be the project tag - e.g. "foo".
 # 
-# A convenience c-preprocessor define _USER_$(USER) is defined so that
-# personal yaml can be written inside, for example, #if _USER_maarten
-# / #endif blocks, if your userid is 'maarten'.
+# A convenience c-preprocessor define _USER_$(USER) is #define-ed as true
+# so that personal yaml can be written inside, for example,
+# #if _USER_maarten ... #endif blocks, if your userid is "maarten".
+# Also, _USER is #define-ed to be the userid - e.g. "maarten".
 #
-# Please see https://github.com/maartenwrs/espmake/blob/main/README.md for more details.
+# Refer to https://github.com/maartenwrs/espmake/blob/main/README.md
+# for more details.
 
 MAIN	= main.yaml
 SRCS	= $(wildcard *.yaml)
@@ -30,7 +39,7 @@ PROJTAG	= 0
 PREFIX	= myProj_
 PROJDIR	= $(OUTDIR)/$(PREFIX)$(PROJTAG)
 CPPINCS = -I$(PROJDIR) -I.
-CPPDEFS = -D_PROJTAG_$(PROJTAG)=1 -D_USER_$(USER)=1
+CPPDEFS = -D_PROJTAG_$(PROJTAG)=1 -D_PROJTAG=$(PROJTAG) -D_USER_$(USER)=1 -D_USER=$(USER)
 
 _MAIN	= $(PROJDIR).yaml
 _YAMLS	= $(addprefix $(PROJDIR)/,$(filter-out $(wildcard $(PREFIX)*.yaml),$(SRCS)))
@@ -39,6 +48,7 @@ DEHASH	= $(OUTDIR)/dehash/dehash.sh --cpp
 CPP	= gcc -x c -E -P -undef -nostdinc $(CPPINCS) $(CPPDEFS) 
 
 all:	$(OUTDIR)/dehash $(PROJDIR) $(_YAMLS) $(_MAIN)
+ifneq (,$(findstring esphome,$(VIRTUAL_ENV))) # check if esphome venv
 	-@if [ "$(OUTDIR)" != "." -a -f "secrets.yaml" ]; then 		   \
 	    if [ -L "$(OUTDIR)/secrets.yaml" ]; then 			   \
 	    	rm -f $(OUTDIR)/secrets.yaml;				   \
@@ -48,10 +58,12 @@ all:	$(OUTDIR)/dehash $(PROJDIR) $(_YAMLS) $(_MAIN)
 	    fi;								   \
 	    ln -s $(PREFIX)$(PROJTAG)/secrets.yaml $(OUTDIR)/secrets.yaml; \
 	fi
-	@echo "$(_MAIN) is up to date and ready for commands such as:"
-	@echo "esphome config  $(_MAIN)"
-	@echo "esphome compile $(_MAIN)"
-	@echo "esphome upload  $(_MAIN)"
+	@echo "$(_MAIN) is up to date"
+	esphome compile $(_MAIN)
+else
+	@echo "$(_MAIN) is up to date"
+endif
+
 
 $(_MAIN) $(_YAMLS): $(OUTDIR)/dehash Makefile
 
@@ -72,12 +84,14 @@ $(PROJDIR)/%.yaml: %.yaml
 
 clean:
 	rm -rf $(PROJDIR) $(_MAIN)
+ifneq (,$(findstring esphome,$(VIRTUAL_ENV))) # check if esphome venv
 	@if [ "$(OUTDIR)" != "." -a -f "secrets.yaml" ]; then 	\
 	    if [ -L "$(OUTDIR)/secrets.yaml" ]; then 		\
 	    	echo "rm $(OUTDIR)/secrets.yaml";		\
 	    	rm -f $(OUTDIR)/secrets.yaml;			\
 	    fi;							\
 	fi
+endif
 
 realclean: clean
 	rm -rf $(OUTDIR)/dehash .esphome
