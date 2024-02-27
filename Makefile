@@ -1,6 +1,6 @@
 # This Makefile is based on https://github.com/maartenwrs/espmake
 # 
-# A convenience c-preprocessor define _PROJTAG$(PROJTAG) is defined so that
+# A convenience c-preprocessor define _PROJTAG_$(PROJTAG) is defined so that
 # project-specific yaml can be written inside, for example, #if _PROJTAG_foo
 # / #endif blocks, when PROJTAG is set to "foo".
 # 
