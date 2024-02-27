@@ -1,8 +1,14 @@
-alias get_esphome='source ~/git/esphome.git/venv/bin/activate; cd ~/git/growOS/esphome'
+# change ~/git/growOS/esphome to your project directory.
+alias get_esphomee='source ~/git/esphome.git/venv/bin/activate; cd ~/git/growOS/esphome'
 alias git_diff='git diff HEAD@{1}'
 alias search="find . -type f -print0 | xargs -0 grep -i"
 alias esp=esphome
 alias compile="esphome compile myProj_0.yaml"
+# these alias show how to generate firmware for two esphome devices
+# (that are connected to two USB consoles) from the same project
+# If espmake is used for two variants on the same USB console
+# (ie. for the same device) then the console USB /dev paths
+# will be all the same between, for example, alias jtag and alias jtag1.
 alias make1="make PROJTAG=1"
 alias compile1="esphome compile myProj_1.yaml"
 
