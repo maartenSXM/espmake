@@ -1,116 +1,173 @@
-# This Makefile is from https://github.com/maartenwrs/espmake
-# It is esphome project independent since all esphome project config
-# can be conditionally included from yaml, when this Makefile is used
-# to build an esphome project. Instead of editting this Makefile, 
-# consider adding a main.yaml to your project that #includes yaml
-# files for your project as needed.  That will future-proof your Makefile
-# if you ever need to update it using "make update" from the espmake repo.
-# 
-# A convenience c-preprocessor define _PROJTAG_$(PROJTAG) is #define-ed as
-# true so that project-specific yaml can be written inside, for example,
-# #if _PROJTAG_foo ... #endif blocks, when PROJTAG is set to "foo".
-# Also, _PROJTAG is #define-ed to be the project tag - e.g. "foo".
-# 
-# A convenience c-preprocessor define _USER_$(USER) is #define-ed as true
-# so that personal yaml can be written inside, for example,
-# #if _USER_maarten ... #endif blocks, if your userid is "maarten".
-# Also, _USER is #define-ed to be the userid - e.g. "maarten".
-#
-# Refer to https://github.com/maartenwrs/espmake/blob/main/README.md
+# This Makefile is from https://github.com/maartenSXM/espmake
+
+# It is esphome project independent since all esphome project
+# configuration can be conditionally included from yaml that the
+# generated final esphome.yaml can adapt at build time. There are
+# a some C preprocessor defines that your esphome yaml can use to do
+# such # adaptation. See CPT_EXTRA_DEFS below.
+
+# Refer to https://github.com/maartenSXM/espmake/blob/main/README.md
 # for more details.
 
-MAIN	= main.yaml
-SRCS	= $(wildcard *.yaml)
-
-# the make rules below require yaml files to have .yaml suffixes.
-ifneq (x$(suffix $(MAIN)),x.yaml)
-  $(error "The suffix of $(MAIN) yaml file must be .yaml")
+ifeq (,$(MAKECMDGOALS))
+MAKECMDGOALS := all
 endif
-ifeq ($(shell test -e $(MAIN) || echo -n no),no)
-  $(error "$(MAIN) not found (MAIN=xxx.yaml argument intended?)")
-endif
+MAKE            := $(MAKE) --no-print-directory
+MAKEFILE        := $(lastword $(MAKEFILE_LIST))
 
-ifneq (x$(suffix $(MAIN)),x.yaml)
-  $(error "The suffix of $(MAIN) yaml file must be .yaml")
+ifeq (,$(ESPMAKE_HOME))
+  $(info Makefile: please define ESPMAKE_HOME to use this Makefile.)
+  $(error Makefile: Refer to $(ESPMAKE_HOME)/Bashrc for details.)
 endif
 
-OUTDIR	= .
-PROJTAG	= 0
-PREFIX	= myProj_
-PROJDIR	= $(OUTDIR)/$(PREFIX)$(PROJTAG)
-CPPINCS = -I$(PROJDIR) -I.
-CPPDEFS = -D_PROJTAG_$(PROJTAG)=1 -D_PROJTAG=$(PROJTAG) -D_USER_$(USER)=1 -D_USER=$(USER)
+# Get cpptext.
 
-_MAIN	= $(PROJDIR).yaml
-_YAMLS	= $(addprefix $(PROJDIR)/,$(filter-out $(wildcard $(PREFIX)*.yaml),$(SRCS)))
+ifeq (,$(wildcard $(ESPMAKE_HOME)/cpptext/.git))
+  ifneq (,$(BAIL))
+    $(error $(MAKEFILE): make loop detected. Bailing out.)
+  endif
 
-DEHASH	= $(OUTDIR)/dehash/dehash.sh --cpp
-CPP	= gcc -x c -E -P -undef -nostdinc $(CPPINCS) $(CPPDEFS) 
-
-all:	$(OUTDIR)/dehash $(PROJDIR) $(_YAMLS) $(_MAIN)
-ifneq (,$(findstring esphome,$(VIRTUAL_ENV))) # check if esphome venv
-	-@if [ "$(OUTDIR)" != "." -a -f "secrets.yaml" ]; then 		   \
-	    if [ -L "$(OUTDIR)/secrets.yaml" ]; then 			   \
-	    	rm -f $(OUTDIR)/secrets.yaml;				   \
-		echo "re-linking $(OUTDIR)/secrets.yaml";		   \
-	    else							   \
-		echo "linking $(OUTDIR)/secrets.yaml";			   \
-	    fi;								   \
-	    ln -s $(PREFIX)$(PROJTAG)/secrets.yaml $(OUTDIR)/secrets.yaml; \
-	fi
-	@echo "$(_MAIN) is up to date"
-	esphome compile $(_MAIN)
+$(MAKECMDGOALS): 
+	@printf "$(MAKEFILE): cloning cpptext\n"
+	cd $(ESPMAKE_HOME) && \
+	    git clone git@github.com:maartenSXM/cpptext
+	cd $(ESPMAKE_HOME) && cpptext && git checkout main
+	@printf "$(MAKEFILE): Restarting \"make $(MAKECMDGOALS)\"\n"
+	$(MAKE) BAIL=1 $(MAKECMDGOALS)
 else
-	@echo "$(_MAIN) is up to date"
+
+# The rest of this Makefile is inside the 'ifeq' cpptext check from above.
+
+ESPMAKE_INIT ?= ./espinit.yaml
+ifeq (,$(wildcard $(ESPMAKE_INIT))) # check specified initial file exists
+    $(info $(MAKEFILE): $(ESPMAKE_INIT) not found.)
+    $(error $(MAKEFILE): Perhaps run this in the example directory?)
 endif
 
+# set the variable that cpptext/Makefile.cpptext uses
+ESP_INIT = $(ESPMAKE_INIT)
 
-$(_MAIN) $(_YAMLS): $(OUTDIR)/dehash Makefile
-
-$(_MAIN): $(PROJDIR)/$(MAIN) $(_YAMLS)
-	@echo "Generating $@ from dehashed files in $(PROJDIR)/"
-	$(CPP) -MD -MP -MT $@ -MF $<.d $< > $@
-
-$(OUTDIR):
-	-mkdir -p $@
-
-$(PROJDIR):
-	-mkdir -p $@
-
-$(PROJDIR)/%.yaml: %.yaml
-	$(DEHASH) $< > $@
-
--include $(wildcard $(PROJDIR)/*.d)
-
-clean:
-	rm -rf $(PROJDIR) $(_MAIN)
-ifneq (,$(findstring esphome,$(VIRTUAL_ENV))) # check if esphome venv
-	@if [ "$(OUTDIR)" != "." -a -f "secrets.yaml" ]; then 	\
-	    if [ -L "$(OUTDIR)/secrets.yaml" ]; then 		\
-	    	echo "rm $(OUTDIR)/secrets.yaml";		\
-	    	rm -f $(OUTDIR)/secrets.yaml;			\
-	    fi;							\
-	fi
+# Check if PRJ= was specified on the command line to select a project.
+ifneq (,$(PRJ))
+  ifeq (,$(wildcard $(PRJ)))	    # check specified espmake project exists
+    $(error $(MAKEFILE): $(PRJ) not found)
+  endif
+  $(shell echo $(PRJ) $(ESPMAKE_HOME)/.espmake_project)
+else
+  ifneq (,$(wildcard $(ESPMAKE_HOME)/.espmake_project))
+    PRJ := $(shell cat $(ESPMAKE_HOME)/.espmake_project)
+  else
+    ifeq (,$(wildcard $(ESP_INIT)))
+      $(error $(MAKEFILE): ESP_INIT not found)
+    endif
+    PRJ = $(ESP_INIT)
+  endif
 endif
 
-realclean: clean
-	rm -rf $(OUTDIR)/dehash .esphome
+ESPMAKE_PRJ_PATH = $(PRJ)
+ESPMAKE_PRJ_DIR  = $(patsubst %/,%,$(dir $(PRJ)))
+ESPMAKE_PROJECT  = $(basename $(notdir $(ESPMAKE_PRJ_PATH)))
 
-.PHONY:    clean realclean update
-.PRECIOUS: $(PROJDIR) $(OUTDIR) $(OUTDIR)/dehash
+# CPT_BUILD_DIR is where espmake projects are built.  It can be changed here.
+# the depth of CPT_BUILD_DIR changes. Refer to the ESPMAKE_HOME comments below
+# for more details.
 
-$(OUTDIR)/dehash:
-	-@mkdir -p $(OUTDIR)
-	cd $(OUTDIR); git clone https://github.com/maartenwrs/dehash
+CPT_BUILD_DIR = $(ESPMAKE_HOME)/build/$(ESPMAKE_PROJECT)
+ESPMAKE_BUILD_LOG = $(CPT_BUILD_DIR)/makeall.log
 
-# pull dehash repo and this Makefile from github
-update:
-	-@if [ -d "$(OUTDIR)/dehash" ]; then 			\
-		echo "Updating git repo $(OUTDIR)/dehash";	\
-		cd $(OUTDIR)/dehash; git pull; 			\
-	fi
-	-@curl https://raw.githubusercontent.com/maartenwrs/espmake/main/Makefile >Makefile.new 2> /dev/null
-	-@echo "Latest espmake Makefile downloaded as Makefile.new"
-	-@echo "Changes from ./Makefile to latest espmake Makefile are:"
-	-diff Makefile Makefile.new
+# restart 'make all' with logging to $(CPT_BUILD_DIR)/build.log and console
+ifeq (all,$(ESPMAKE_AUTOLOG)$(MAKECMDGOALS))
+  SHELL:=bash
+all:
+	@$(MAKE) -k ESPMAKE_AUTOLOG=1 $(MAKECMDGOALS) |& \
+		tee $(ESPMAKE_BUILD_LOG)
+	@printf "Makefile: \"make all\" log is $(ESPMAKE_BUILD_LOG)\n"
+else
+
+# CPT_GEN is the set of files that cpptext runs the C preprocessor on.
+# They can include files from CPT_SRCS (defined below) since the cpptext
+# tool arranges that de-commented copies are included, not the originals.
+
+# CPT_GEN  ?= partitions.csv lily.yaml
+CPT_GEN  ?= $(ESP_INIT)
+
+# Use this to list subdirectories to #include yaml files from.
+ESPMAKE_DIRS ?= 
+
+# CPT_SRCS is the set of files that cpptext will remove hash-style
+# comments from while leaving any C preprocessor directives so that
+# the file can subsequently be used as a #include by one of the
+# CPT_GEN files.
+
+# Builds the list of CPT_SRCS by looking for .yaml files in $(ESPMAKE_DIRS).
+
+CPT_SRCS += $(sort $(filter-out ./secrets.h,$(foreach d,$(ESPMAKE_DIRS),$(wildcard $(d)/*.yaml))) $(CPT_GEN))
+
+# In addition to updates to $(CPT_SRCS) triggering a rebuild of esphome.yaml,
+# updates to source files in $(ESP_DEPS) are also triggers.
+
+ESPMAKE_DEPS ?= 
+
+ESP_DEPS += $(foreach d,$(ESPMAKE_DEPS),$(wildcard $(d)/*.c) \
+		$(wildcard $(d)/*.cpp) $(wildcard $(d)/*.h))
+
+# If there is a secrets.h file in ./ or ../, use it
+
+ifneq (,$(wildcard ./secrets.h))
+  CPT_EXTRA_FLAGS += -include ./secrets.h
+else
+  ifneq (,$(wildcard ../secrets.h))
+    CPT_EXTRA_FLAGS += -include ../secrets.h
+  endif
+endif
+
+# Use this to list additional #include directories
+
+CPT_EXTRA_INCS +=
+
+# These #defines are for project adapation. 
+
+CPT_EXTRA_DEFS += -D ESPMAKE_HOME=../..				\
+		  -D ESPMAKE_BUILD_PATH=$(CPT_BUILD_DIR)	\
+		  -D ESPMAKE_PRJ_DIR=$(ESPMAKE_PRJ_DIR)		\
+		  -D ESPMAKE_PROJECT_NAME=$(ESPMAKE_PROJECT)	\
+		  -D ESPMAKE_PROJECT_$(ESPMAKE_PROJECT)		\
+		  -D ESPMAKE_USER_NAME=$(USER)			\
+		  -D ESPMAKE_USER_$(USER)
+
+# The reason ESPMAKE_HOME is set above to two levels up i.e. ../.. is because
+# the generated esphome.yaml ends up in $(CPT_BUILD_DIR) which is
+# build/$(ESPMAKE_PROJECT) which is two levels down from this directory.
+# ESPMAKE_HOME is used in yaml or C/C++ files to refer to files and directories
+# under this directory and is define as a relative so that build trees
+# are reproducable regardless of where they are built.
+
+# This includes the cpptext Makefile fragment that will dehash yamls files.
+# In turn, it will include cpptext/Makefile.esphome which handles the esphome
+# file generation and platformio build steps.
+
+include $(ESPMAKE_HOME)/cpptext/Makefile.cpptext
+
+print-config:: $(ESP_INIT)
+	@printf "Makefile variables:\n"
+	@printf "  ESPMAKE_PROJECT: $(ESPMAKE_PROJECT)\n"
+	@printf "  ESP_INIT: $(ESP_INIT)\n"
+	@printf "  CPT_GEN:  $(CPT_GEN)\n"
+	@printf "  CPT_SRCS:\n"
+	@$(foreach f,$(CPT_SRCS),printf "    $(f)\n";)
+	@printf "  ESP_DEPS:\n"
+	@$(foreach f,$(ESP_DEPS),printf "    $(f)\n";)
+	@printf "Makefile #defines available to yaml files:"
+	@printf "  $(subst -, ,$(subst -D,#define,$(CPT_EXTRA_DEFS)))\n" | sed -e 's/ #/\n  #/g' -e 's/=/ /g'
+	@printf "For #defaults available to yaml files, "
+	@printf "use: make print-defaults\n"
+
+.PHONY: print-config
+
+# this endif is from the autolog restart
+endif
+
+# This last endif is needed from the git submodule install check above
+
+endif
 

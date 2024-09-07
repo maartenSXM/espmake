@@ -1,5 +1,4 @@
-myProj_*
-.esphome/
 test/.esphome
-dehash/
 Makefile.new
+build
+cpptext

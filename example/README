@@ -1,5 +1,5 @@
 Files:
-    main.yaml
+    ../lily.yaml
 	The project's main yaml file.  It #includes other project files.
 
     config.h

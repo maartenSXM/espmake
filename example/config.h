@@ -5,12 +5,12 @@
 #define CONFIG_HA			1	// Home Assistant?
 
 // Config specific to a project tag
-#if _PROJTAG_0
+#ifdef ESPMAKE_PROJECT_lily
   #define CONFIG_DISPLAY		1	// touchscreen display?
-#endif // _PROJTAG == 0
+#endif // ESPMAKE_PROJECT_lily
  
 // Config specific to specific $USER
-#if _USER_blort
+#ifdef _USER_blort
   #undef CONFIG_HA				// USER blort doesnt use HA
 #endif // _USER_blort
 

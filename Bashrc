@@ -1,22 +1,100 @@
-# change ~/git/growOS/esphome to your project directory.
-alias get_esphomee='source ~/git/esphome.git/venv/bin/activate; cd ~/git/growOS/esphome'
-alias git_diff='git diff HEAD@{1}'
-alias search="find . -type f -print0 | xargs -0 grep -i"
-alias esp=esphome
-alias compile="esphome compile myProj_0.yaml"
-# these alias show how to generate firmware for two esphome devices
-# (that are connected to two USB consoles) from the same project
-# If espmake is used for two variants on the same USB console
-# (ie. for the same device) then the console USB /dev paths
-# will be all the same between, for example, alias jtag and alias jtag1.
-alias make1="make PROJTAG=1"
-alias compile1="esphome compile myProj_1.yaml"
+# Place this esp-setup alias ~/.bashrc and adjust the two paths
+# to point to your git repos for esphome and espmake. Then issue 
+# "source ~/.bashrc" to define the bash alias esp-setup.
 
-alias jtag="esphome upload --device /dev/ttyUSB1 myProj_0.yaml"
-alias jtag1="esphome upload --device /dev/ttyUSB2 myProj_1.yaml"
-alias logs="esphome logs --device /dev/ttyUSB1 myProj_0.yaml"
-alias logs1="esphome logs --device /dev/ttyUSB2 myProj_1.yaml"
-alias upload="esphome upload --device 192.168.8.134 myProj_0.yaml"
-alias upload1="esphome upload --device 192.168.8.135 myProj_1.yaml"
+# alias esp-setup='source ~/git/esphome/venv/bin/activate; cd ~/git/espmake; source ./Bashrc'
 
+# Once you have done the above, you can activate espmake under bash
+# using 'esp-setup' and then you will have some convenience aliases.
+# See the section below titled "Convenience aliases" to see what they do.
+
+# The directory where this file lives is stashed in ESPMAKE_HOME
+export ESPMAKE_HOME=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+# set your espmake project IP addresses here.
+
+export _ESP_IP0=192.168.248.10
+export _ESP_IP1=192.168.248.11
+
+# or, by user, if you are sharing this Bashrc, here:
+if [ "$USER" == "maarten" ]; then
+  export _ESP_IP0=192.168.248.20
+  export _ESP_IP1=192.168.248.21
+fi
+
+# This is a helper function that returns the relative path to the build
+# directory of the last project built.  Example: ./build/espinit
+_ESP_LAST_BUILD() {
+    echo $(realpath --relative-to=$PWD $ESPMAKE_HOME)/build/$(basename $(dirname $(cat $ESPMAKE_HOME/.espmake_project)))_$(basename $(cat $ESPMAKE_HOME/.espmake_project) .mk)
+}
+
+# This is a helper function that returns the name of the esphome
+# device as specified in esphome yaml "esphome:" component entry "name:".
+# Example: lilygot4s3
+_ESP_LAST_ESPNAME() {
+    echo $(yq -r --no-doc .esphome.name $(_ESP_LAST_BUILD)/esphome.yaml | grep -v null)
+}
+
+# helper alias that takes an esphome verb and a ACM device number and
+# issues it on the last built project.
+alias _ESP_ESP_USB='function _ESP_ESP_USB { _VERB=${1}; _DEV=${2}; cd $(_ESP_LAST_BUILD); esphome -v ${_VERB} --device /dev/ttyACM${_DEV} esphome.yaml; cd -;}; _ESP_ESP_USB'
+
+# helper alias to upload last project using OTA update to IP _ESP_IP_CPU<arg>
+# Note the indirect variable reference ${!_IP} to choose the _IP 
+alias _ESP_ESP_UPLOAD='function _ESP_ESP_UPLOAD { _IPNUM=${1}; _IP=_ESP_IP_CPU${_IPNUM}; esphome -v upload --device ${!_IP} --file $(_ESP_LAST_BUILD)/.esphome/build/$(_ESP_LAST_ESPNAME)/.pioenvs/$(_ESP_LAST_ESPNAME)/firmware.bin $(_ESP_LAST_BUILD)/esphome.yaml;}; _ESP_ESP_UPLOAD'
+
+# _ESP_IDF_JTAG uses esp-idf directly to burn firmware to /dev/ttyACM0
+export ESPTOOL_TESTING=1 # as per esptool/esp32s2.py
+alias _ESP_IDF_JTAG='(cd $(_ESP_LAST_BUILD)/.esphome/build/$(_ESP_LAST_ESPNAME)/.pioenvs/$(_ESP_LAST_ESPNAME) && esptool.py --before default_reset --after no_reset --baud 1500000 --port /dev/ttyACM0 --chip esp32s2 write_flash -z --flash_size detect 0x10000 firmware.bin 0x1000 bootloader.bin 0x8000 partitions.bin 0x9000 ota_data_initial.bin)'
+
+# Convenience aliases
+
+# Aliases to provide the list of aliases :-)
+alias esp-help='alias | grep esp-'
+alias esp-aliases='alias | grep esp-'
+
+# Aliases to upload for the last project to IP _ESP_IP0 or _ESP_IP1
+alias esp-upload-0="_ESP_ESP_UPLOAD 0"
+alias esp-upload-1="_ESP_ESP_UPLOAD 1"
+alias esp-upload="esp-upload-0"
+
+# Aliases to upload the last project to /dev/ttyACM0 or /dev/ttyACM1
+alias esp-jtag-0="_ESP_ESP_USB upload 0"
+alias esp-jtag-1="_ESP_ESP_USB upload 1"
+alias esp-jtag="esp-jtag-0"
+
+# Aliases to monitor logs on /dev/ttyACM0 or /dev/ttyACM1
+alias esp-logs-0="_ESP_ESP_USB logs 0"
+alias esp-logs-1="_ESP_ESP_USB logs 1"
+alias esp-logs="esp-logs-0"
+
+# Alias esp-make builds the current project
+alias esp-make='make -C $ESPMAKE_HOME'
+
+# Aliases to cd to common directories
+alias esp-home='cd $ESPMAKE_HOME'
+alias esp-project='cd $ESPMAKE_HOME/$(dirname $(cat $ESPMAKE_HOME/.espmake_project))'
+alias esp-build='cd $(_ESP_LAST_BUILD)'
+
+# Aliases to view to common artifacts
+alias esp-log='view $(_ESP_LAST_BUILD)/makeall.log'
+alias esp-yaml='view $(_ESP_LAST_BUILD)/esphome.yaml'
+
+# Aliases to find strings including or excluding the build directory
+alias esp-search="find $ESPMAKE_HOME ! -name '*.swp' ! -name '*.bak' ! -path '*/.git/*' ! -path './build/*' -type f -print0 | xargs -0 grep -i"
+alias esp-search-all="find $ESPMAKE_HOME ! -name '*.swp' ! -name '*.bak' ! -path '*/.git/*' -type f -print0 | xargs -0 grep -i"
+
+# Aliases to search for arg1 and replace it with arg2 in all files.
+# Backup files are stored in <file>.bak.  There are variants for arg1
+# not containing octothorpe, comma and slash. The default is no slash.
+esp-replace-nohash() {
+ find . ! -name '*.swp' ! -name '*.bak' ! -path '*/.git' ! -path '*/build' -type f -print0 | xargs -0 grep -l "$1" | xargs sed --in-place=.bak "s#$1#$2#g"
+}
+esp-replace-nocomma() {
+ find . ! -name '*.swp' ! -name '*.bak' ! -path '*/.git' ! -path '*/build' -type f -print0 | xargs -0 grep -l "$1" | xargs sed --in-place=.bak "s,$1,$2,g"
+}
+esp-replace-noslash() {
+ find . ! -name '*.swp' ! -name '*.bak' ! -path '*/.git' ! -path '*/build' -type f -print0 | xargs -0 grep -l "$1" | xargs sed --in-place=.bak "s/$1/$2/g"
+}
+alias esp-replace='esp-replace-noslash'
 
