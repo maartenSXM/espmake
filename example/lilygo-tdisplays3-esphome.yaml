@@ -1,14 +1,32 @@
+// note there is a binary sensor delcared later also
+// cpptext/Makefile.esphome will merge them.
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: _PIN_BUTTON_1
+      inverted: true
+    name: "Button 1"
+
 esphome:
   name: s3-touch
   friendly_name: ESP32-S3 Touch T-Display
   platformio_options:
     board_build.f_flash: 80000000L
-    board_build.partitions: default_16MB.csv
-    board_build.arduino.memory_type: qio_opi
 
 external_components:
   - source: "github://landonr/lilygo-tdisplays3-esphome"
     components: [tdisplays3]
+
+#if CONFIG_DEFAULT_PARTITIONS
+esphome:
+  platformio_options:
+    board_build.partitions: default_16MB.csv
+#endif
+
+esphome:
+  platformio_options:
+    board_build.arduino.memory_type: qio_opi
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -45,11 +63,6 @@ time:
 #endif // CONFIG_HA
 
 binary_sensor:
-  - platform: gpio
-    pin:
-      number: _PIN_BUTTON_1
-      inverted: true
-    name: "Button 1"
   - platform: gpio
     pin:
       number: _PIN_BUTTON_2

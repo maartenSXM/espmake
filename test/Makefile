@@ -7,7 +7,7 @@ YAML1     := esphome.yaml
 YAML2     := lilygo-tdisplays3-esphome.yaml
 ESPMAKE   := ./tmp.$(shell echo $$PPID)
 ESPHOME   := ./tmp.$(shell echo $$PPID)
-yamlmerge := ../cpptext/yamlmerge.sh -s -e
+YAMLMERGE := ../cpptext/yamlmerge.sh -s -e
 
 test all:
 	@printf "Creating $(ESPMAKE) using espmake from ../example/$(YAML1) ..."
@@ -17,9 +17,9 @@ test all:
 	@printf "done.\n"
 	@printf "Creating $(ESPHOME) using esphome from $(YAML2) ..."
 	@esphome config $(YAML2) >$(ESPHOME) 2> /dev/null
-	@$(YQ) -o $(ESPHOME).yq $(ESPHOME)
-	@mv $(ESPHOME).yq $(ESPHOME)
 	@printf "done.\n"
+	@$(YAMLMERGE) -o $(ESPHOME).yq $(ESPHOME)
+	@mv $(ESPHOME).yq $(ESPHOME)
 	@printf "Comparing espmake and esphome configs..."
 	@if diff $(ESPMAKE) $(ESPHOME); then			\
 	    printf " OK\n*** test passed ***\n"; 		\

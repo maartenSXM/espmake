@@ -1,0 +1,8 @@
+#ifndef _INCLUDE_DEFAULT_H_
+#define _INCLUDE_DEFAULT_H_
+
+#default CONFIG_HA		   no
+#default CONFIG_DISPLAY		   no
+#default CONFIG_DEFAULT_PARTITIONS yes
+
+#endif // _INCLUDE_DEFAULT_H_
