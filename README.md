@@ -8,13 +8,15 @@ espmake assists with managing multiple esphome project variants that share
 yaml source files.  espmake also enables the sharing of pin definitions
 and configuration definitions between yaml and C / C++ files by enabling
 the use of C preprocessor directives inside espmake.yaml files. See
-lil.yaml, config.h and pins.h in the example directory.
+lily.yaml, config.h and pins.h in the example directory.
 
 espmake generates a new espmake.yaml file for each project variant.
-project variants are found in the build/ directory. The variants are
-named after the PRJ variable setting.  For lily.yaml, the
-espmake.yaml file will be found in build/lily. If the PRJ
-file is set to espmake.yaml, the build for it will be in build/esphome.
+Project variants are built in the build/ directory by default.
+Project variants are selected using the PRJ make variable and named
+after the file specified without the suffix. For example, for
+"make PRJ=lily.yaml", the espmake.yaml file will be found in
+build/lily. If the PRJ file is set to esphome.yaml, the build for
+it will be in build/esphome.
 
 The reason a new espmake.yaml is generated is because espmake
 runs the existing esphome project's yaml files through the
@@ -34,15 +36,19 @@ some convenience aliases that can be found in Bashrc.
 ## Installation
 
 espmake is basically just a Makefile which is manually copied into an
-existing esphome project directory to enable the make command.
-Note that this manual installation procedure assumes that the destination
-project doesn't have a Makefile already. If it does, this Makefile could
-be renamed or placed in another directory and included from the
-project Makefile.  However that is left as an exercise for the reader.
+existing esphome project directory and renamed "Makefile" to enable the
+make command to be run without arguments indicating the name of the
+Makefile to process.
 
-To use it, activate the esphome venv environment and then source the
+Note that this manual installation procedure assumes that the destination
+project doesn't have a Makefile already. If it does, the rename can be
+skipped espmake can be used with 'make -f Makefile.espmake'.
+
+To use espmake, activate the esphome venv environment and then source the
 espmake/Bashrc, which will set ESPMAKE_HOME and define some convenience
-aliases.
+aliases. This bash alias may be useful to place in ~/.bashrc, 
+alias espmake='source ~/git/esphome/venv/bin/activate; cd ~/git/espmake; source
+ ./Bashrc; cd myProject'
 
 ## Makefile User variables
 
@@ -60,8 +66,10 @@ afterwards.
 The initial yaml file that #includes the others. It defaults
 to "esphome.yaml". To quickly get started using espmake, clone
 espmake and then copy the Makefile to the same directory as your
-espmake.yaml make PRJ=espmake.yaml, assuming your espmake.yaml
-file is called espmake.yaml.
+esphome.yaml and type make.  If your esphome yaml file is called
+something else, use "make PRJ=<esphome yaml file>.  After specifyiong
+PRJ= once, espmake will remember it since it stashes it in
+$ESPMAKE_HOME/.espmake_project.
 
 ## Generated files
 
@@ -76,9 +84,10 @@ Makefile.
 There are some aliases in file Bashrc which may be helpful for issuing
 esphome commands.  To dump the espmake config, try 'make print-config'.
 
-espmake uses a small github project called cpptext
+espmake uses a github project called cpptext
 (https://github.com/maartenSXM/cpptext) to remove hash-style comments
-before running files through the c-preprocessor.
+before running files through the c-preprocessor and it also
+uses it's Makefile fragments.
 
 cpptext leverages yq to merge multiple declaration of esphome sections
 such as "sensor:" or "switch:".  This allows #ifdefs to declare them
