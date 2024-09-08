@@ -9,7 +9,7 @@ Files:
 	Where esphome pin numbers are set for C/C++ and yaml use.
 
     secrets.yaml
-	Included by lilygo-tdisplays3-esphome.yaml using !secret.
+	Included by lilygo-tdisplays3-espmake.yaml using !secret.
 
-    lilygo-tdisplays3-esphome.yaml
+    lilygo-tdisplays3-espmake.yaml
 	The examplary project, espmake-fied.  The original is in ../test.

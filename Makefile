@@ -2,8 +2,8 @@
 
 # It is esphome project independent since all esphome project
 # configuration can be conditionally included from yaml that the
-# generated final esphome.yaml can adapt at build time. There are
-# a some C preprocessor defines that your esphome yaml can use to do
+# generated final espmake.yaml can adapt at build time. There are
+# a some C preprocessor defines that your espmake.yaml can use to do
 # such # adaptation. See CPT_EXTRA_DEFS below.
 
 # Refer to https://github.com/maartenSXM/espmake/blob/main/README.md
@@ -28,31 +28,22 @@ ifeq (,$(wildcard $(ESPMAKE_HOME)/cpptext/.git))
   endif
 
 $(MAKECMDGOALS): 
-	@printf "$(MAKEFILE): cloning cpptext\n"
-	cd $(ESPMAKE_HOME) && \
-	    git clone git@github.com:maartenSXM/cpptext
+	cd $(ESPMAKE_HOME) && git clone git@github.com:maartenSXM/cpptext
 	cd $(ESPMAKE_HOME) && cpptext && git checkout main
 	@printf "$(MAKEFILE): Restarting \"make $(MAKECMDGOALS)\"\n"
-	$(MAKE) BAIL=1 $(MAKECMDGOALS)
+	@$(MAKE) BAIL=1 $(MAKECMDGOALS)
 else
 
 # The rest of this Makefile is inside the 'ifeq' cpptext check from above.
 
-ESPMAKE_INIT ?= ./espinit.yaml
-ifeq (,$(wildcard $(ESPMAKE_INIT))) # check specified initial file exists
-    $(info $(MAKEFILE): $(ESPMAKE_INIT) not found.)
-    $(error $(MAKEFILE): Perhaps run this in the example directory?)
-endif
-
-# set the variable that cpptext/Makefile.cpptext uses
-ESP_INIT = $(ESPMAKE_INIT)
+PRJ ?= ./esphome.yaml
 
 # Check if PRJ= was specified on the command line to select a project.
 ifneq (,$(PRJ))
   ifeq (,$(wildcard $(PRJ)))	    # check specified espmake project exists
     $(error $(MAKEFILE): $(PRJ) not found)
   endif
-  $(shell echo $(PRJ) $(ESPMAKE_HOME)/.espmake_project)
+  $(shell echo $(PRJ) > $(ESPMAKE_HOME)/.espmake_project)
 else
   ifneq (,$(wildcard $(ESPMAKE_HOME)/.espmake_project))
     PRJ := $(shell cat $(ESPMAKE_HOME)/.espmake_project)
@@ -63,6 +54,14 @@ else
     PRJ = $(ESP_INIT)
   endif
 endif
+
+ifeq (,$(wildcard $(PRJ))) # check specified initial file exists
+    $(info $(MAKEFILE): $(PRJ) not found.)
+    $(error $(MAKEFILE): Perhaps run this in the example directory?)
+endif
+
+# set the variable that cpptext/Makefile.cpptext uses
+ESP_INIT = $(PRJ)
 
 ESPMAKE_PRJ_PATH = $(PRJ)
 ESPMAKE_PRJ_DIR  = $(patsubst %/,%,$(dir $(PRJ)))
@@ -91,6 +90,11 @@ else
 # CPT_GEN  ?= partitions.csv lily.yaml
 CPT_GEN  ?= $(ESP_INIT)
 
+# if there is a secrets.yaml, we will run it through cpp too
+ifeq (secrets.yaml,$(wildcard secrets.yaml))
+  CPT_GEN += secrets.yaml
+endif
+
 # Use this to list subdirectories to #include yaml files from.
 ESPMAKE_DIRS ?= 
 
@@ -101,9 +105,9 @@ ESPMAKE_DIRS ?=
 
 # Builds the list of CPT_SRCS by looking for .yaml files in $(ESPMAKE_DIRS).
 
-CPT_SRCS += $(sort $(filter-out ./secrets.h,$(foreach d,$(ESPMAKE_DIRS),$(wildcard $(d)/*.yaml))) $(CPT_GEN))
+CPT_SRCS += $(sort $(foreach d,$(ESPMAKE_DIRS),$(wildcard $(d)/*.yaml)) $(CPT_GEN))
 
-# In addition to updates to $(CPT_SRCS) triggering a rebuild of esphome.yaml,
+# In addition to updates to $(CPT_SRCS) triggering a rebuild of espmake.yaml,
 # updates to source files in $(ESP_DEPS) are also triggers.
 
 ESPMAKE_DEPS ?= 
@@ -136,7 +140,7 @@ CPT_EXTRA_DEFS += -D ESPMAKE_HOME=../..				\
 		  -D ESPMAKE_USER_$(USER)
 
 # The reason ESPMAKE_HOME is set above to two levels up i.e. ../.. is because
-# the generated esphome.yaml ends up in $(CPT_BUILD_DIR) which is
+# the generated espmake.yaml ends up in $(CPT_BUILD_DIR) which is
 # build/$(ESPMAKE_PROJECT) which is two levels down from this directory.
 # ESPMAKE_HOME is used in yaml or C/C++ files to refer to files and directories
 # under this directory and is define as a relative so that build trees
@@ -149,12 +153,12 @@ CPT_EXTRA_DEFS += -D ESPMAKE_HOME=../..				\
 include $(ESPMAKE_HOME)/cpptext/Makefile.cpptext
 
 print-config:: $(ESP_INIT)
-	@printf "Makefile variables:\n"
+	@printf "Makefile variables as processed by cpptext:\n"
 	@printf "  ESPMAKE_PROJECT: $(ESPMAKE_PROJECT)\n"
 	@printf "  ESP_INIT: $(ESP_INIT)\n"
 	@printf "  CPT_GEN:  $(CPT_GEN)\n"
 	@printf "  CPT_SRCS:\n"
-	@$(foreach f,$(CPT_SRCS),printf "    $(f)\n";)
+	@$(foreach f,$(CPT_INFILES),printf "    $(f)\n";)
 	@printf "  ESP_DEPS:\n"
 	@$(foreach f,$(ESP_DEPS),printf "    $(f)\n";)
 	@printf "Makefile #defines available to yaml files:"

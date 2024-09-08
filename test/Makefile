@@ -3,8 +3,8 @@ ifeq ($(VIRTUAL_ENV),)
   $(warning Did you forgot to source esphome.git/venv/bin/activate?)
 endif
 
-YAML1     := esphome.yaml
-YAML2     := lilygo-tdisplays3-esphome.yaml
+YAML1     := espmake.yaml
+YAML2     := lilygo-tdisplays3-espmake.yaml
 ESPMAKE   := ./tmp.$(shell echo $$PPID)
 ESPHOME   := ./tmp.$(shell echo $$PPID)
 YAMLMERGE := ../cpptext/yamlmerge.sh -s -e

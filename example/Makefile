@@ -1,3 +1,4 @@
-ESPMAKE_INIT := ./lily.yaml
+PRJ          := lily.yaml
 ESPMAKE_DIRS := .
+
 include ../Makefile

@@ -29,19 +29,19 @@ _ESP_LAST_BUILD() {
 }
 
 # This is a helper function that returns the name of the esphome
-# device as specified in esphome yaml "esphome:" component entry "name:".
+# device as specified in espmake.yaml "esphome:" component entry "name:".
 # Example: lilygot4s3
 _ESP_LAST_ESPNAME() {
-    echo $(yq -r --no-doc .esphome.name $(_ESP_LAST_BUILD)/esphome.yaml | grep -v null)
+    echo $(yq -r --no-doc .esphome.name $(_ESP_LAST_BUILD)/espmake.yaml | grep -v null)
 }
 
 # helper alias that takes an esphome verb and a ACM device number and
 # issues it on the last built project.
-alias _ESP_ESP_USB='function _ESP_ESP_USB { _VERB=${1}; _DEV=${2}; cd $(_ESP_LAST_BUILD); esphome -v ${_VERB} --device /dev/ttyACM${_DEV} esphome.yaml; cd -;}; _ESP_ESP_USB'
+alias _ESP_ESP_USB='function _ESP_ESP_USB { _VERB=${1}; _DEV=${2}; cd $(_ESP_LAST_BUILD); esphome -v ${_VERB} --device /dev/ttyACM${_DEV} espmake.yaml; cd -;}; _ESP_ESP_USB'
 
 # helper alias to upload last project using OTA update to IP _ESP_IP_CPU<arg>
 # Note the indirect variable reference ${!_IP} to choose the _IP 
-alias _ESP_ESP_UPLOAD='function _ESP_ESP_UPLOAD { _IPNUM=${1}; _IP=_ESP_IP_CPU${_IPNUM}; esphome -v upload --device ${!_IP} --file $(_ESP_LAST_BUILD)/.esphome/build/$(_ESP_LAST_ESPNAME)/.pioenvs/$(_ESP_LAST_ESPNAME)/firmware.bin $(_ESP_LAST_BUILD)/esphome.yaml;}; _ESP_ESP_UPLOAD'
+alias _ESP_ESP_UPLOAD='function _ESP_ESP_UPLOAD { _IPNUM=${1}; _IP=_ESP_IP_CPU${_IPNUM}; esphome -v upload --device ${!_IP} --file $(_ESP_LAST_BUILD)/.esphome/build/$(_ESP_LAST_ESPNAME)/.pioenvs/$(_ESP_LAST_ESPNAME)/firmware.bin $(_ESP_LAST_BUILD)/espmake.yaml;}; _ESP_ESP_UPLOAD'
 
 # _ESP_IDF_JTAG uses esp-idf directly to burn firmware to /dev/ttyACM0
 export ESPTOOL_TESTING=1 # as per esptool/esp32s2.py
@@ -78,7 +78,7 @@ alias esp-build='cd $(_ESP_LAST_BUILD)'
 
 # Aliases to view to common artifacts
 alias esp-log='view $(_ESP_LAST_BUILD)/makeall.log'
-alias esp-yaml='view $(_ESP_LAST_BUILD)/esphome.yaml'
+alias esp-yaml='view $(_ESP_LAST_BUILD)/espmake.yaml'
 
 # Aliases to find strings including or excluding the build directory
 alias esp-search="find $ESPMAKE_HOME ! -name '*.swp' ! -name '*.bak' ! -path '*/.git/*' ! -path './build/*' -type f -print0 | xargs -0 grep -i"
@@ -88,13 +88,13 @@ alias esp-search-all="find $ESPMAKE_HOME ! -name '*.swp' ! -name '*.bak' ! -path
 # Backup files are stored in <file>.bak.  There are variants for arg1
 # not containing octothorpe, comma and slash. The default is no slash.
 esp-replace-nohash() {
- find . ! -name '*.swp' ! -name '*.bak' ! -path '*/.git' ! -path '*/build' -type f -print0 | xargs -0 grep -l "$1" | xargs sed --in-place=.bak "s#$1#$2#g"
+ find . ! -name '*.swp' ! -name '*.bak' ! -path '*/.git*' ! -path '*/build*' ! -path '*/cpptext*' ! -path '*/.esphome*' -type f -print0 | xargs -0 grep -l "$1" | xargs sed --in-place=.bak "s#$1#$2#g"
 }
 esp-replace-nocomma() {
- find . ! -name '*.swp' ! -name '*.bak' ! -path '*/.git' ! -path '*/build' -type f -print0 | xargs -0 grep -l "$1" | xargs sed --in-place=.bak "s,$1,$2,g"
+ find . ! -name '*.swp' ! -name '*.bak' ! -path '*/.git*' ! -path '*/build*' ! -path '*/cpptext*' ! -path '*/.esphome*' -type f -print0 | xargs -0 grep -l "$1" | xargs sed --in-place=.bak "s,$1,$2,g"
 }
 esp-replace-noslash() {
- find . ! -name '*.swp' ! -name '*.bak' ! -path '*/.git' ! -path '*/build' -type f -print0 | xargs -0 grep -l "$1" | xargs sed --in-place=.bak "s/$1/$2/g"
+ find . ! -name '*.swp' ! -name '*.bak' ! -path '*/.git*' ! -path '*/build*' ! -path '*/cpptext*' ! -path '*/.esphome*' -type f -print0 | xargs -0 grep -l "$1" | xargs sed --in-place=.bak "s/$1/$2/g"
 }
 alias esp-replace='esp-replace-noslash'
 
