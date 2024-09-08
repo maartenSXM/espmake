@@ -4,7 +4,7 @@ ifeq ($(VIRTUAL_ENV),)
 endif
 
 YAML1     := espmake.yaml
-YAML2     := lilygo-tdisplays3-espmake.yaml
+YAML2     := lilygo-tdisplays3-esphome.yaml
 ESPMAKE   := ./tmp.$(shell echo $$PPID)
 ESPHOME   := ./tmp.$(shell echo $$PPID)
 YAMLMERGE := ../cpptext/yamlmerge.sh -s -e

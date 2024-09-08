@@ -1,4 +1,4 @@
 PRJ          := lily.yaml
 ESPMAKE_DIRS := .
 
-include ../Makefile
+include ../Makefile.espmake

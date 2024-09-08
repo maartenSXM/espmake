@@ -1,6 +1,6 @@
 test/.esphome
 Makefile.new
 build
-cpptext
 *.bak
-cpptext
+cpptext/*
+.espmake_project
